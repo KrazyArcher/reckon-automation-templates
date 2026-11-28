@@ -1,7 +1,17 @@
 {
   "name": "Reckon All-in-One Suite (Filter -> White-Label PDF Audit -> GEO Fix Kit)",
   "nodes": [
-    { "parameters": {}, "id": "t1", "name": "Manual Trigger", "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "position": [220, 300] },
+    {
+      "parameters": {},
+      "id": "t1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        300
+      ]
+    },
     {
       "parameters": {
         "method": "POST",
@@ -9,16 +19,50 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "{\n  \"urls\": [\"https://arkansasfence.com\", \"https://bestplumbersmichigan.com\"],\n  \"brandName\": \"Your Agency\",\n  \"businessType\": \"LocalBusiness\",\n  \"maxPagesPerSite\": 5,\n  \"onlyQualified\": true,\n  \"generateReports\": true,\n  \"generateGeoKit\": true\n}",
-        "options": { "timeout": 120000 }
+        "options": {
+          "timeout": 120000
+        }
       },
       "id": "a1",
       "name": "Run Reckon All-in-One Suite (Apify)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [480, 300]
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Reckon All-in-One Suite (Apify) \u2014 Quick Setup\n\n1. Get your Apify API token from https://console.apify.com/settings/integrations\n2. Add `APIFY_TOKEN` to your n8n environment variables (or replace `{{$env.APIFY_TOKEN}}` in the HTTP node URL).\n3. Put your prospect URLs or Google Maps leads in the JSON body and click **Execute Workflow**.\n\n**What you get:** Opportunity score (healthy sites auto-dropped), verified email/phone, clickable white-label PDF audit (`report_pdf_url`), and AI-Search `llms.txt` + JSON-LD fix kit (`geo_kit.llms_txt_url`).\n\nActor Page: https://apify.com/krazyarcher/reckon-all-in-one-suite",
+        "height": 300,
+        "width": 460
+      },
+      "id": "note-setup",
+      "name": "Setup Guide",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        180,
+        -40
+      ]
     }
   ],
-  "connections": { "Manual Trigger": { "main": [[{ "node": "Run Reckon All-in-One Suite (Apify)", "type": "main", "index": 0 }]] } },
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Run Reckon All-in-One Suite (Apify)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "active": false,
-  "settings": { "executionOrder": "v1" }
+  "settings": {
+    "executionOrder": "v1"
+  }
 }

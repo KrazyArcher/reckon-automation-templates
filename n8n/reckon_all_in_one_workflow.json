@@ -1,59 +1,313 @@
 {
-  "name": "Reckon All-in-One Suite (Filter -> White-Label PDF Audit -> GEO Fix Kit)",
+  "name": "Reckon All-in-One: Local Business SEO/SSL PDF Audit & GEO Lead Pipeline",
   "nodes": [
     {
+      "parameters": {
+        "content": "## 1. Setup & Apify Token\n\n1. Get your Apify API token from https://console.apify.com/settings/integrations\n2. Add `APIFY_TOKEN` as an n8n environment variable (or replace `{{$env.APIFY_TOKEN}}` in Node 3).\n3. Edit **Node 2** with your target local business URLs and your agency brand name.\n\n**Actor:** https://apify.com/krazyarcher/reckon-all-in-one-suite",
+        "height": 240,
+        "width": 380,
+        "color": 4
+      },
+      "id": "note-setup",
+      "name": "Sticky Note - Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 2. Audit & Lead Filtering\n\nRuns Reckon All-in-One Suite to detect expired SSL, broken mobile UX, missing quote forms, and missing AI-search files (`llms.txt` + JSON-LD). Healthy websites are routed out automatically.",
+        "height": 200,
+        "width": 380,
+        "color": 6
+      },
+      "id": "note-audit",
+      "name": "Sticky Note - Audit",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        600,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 3. Pitch Formatting & CSV Export\n\nFormats qualified prospects with clickable white-label PDF audit links, sorts by highest opportunity score, and exports an outreach-ready CSV for your CRM or cold email tool.",
+        "height": 200,
+        "width": 440,
+        "color": 5
+      },
+      "id": "note-export",
+      "name": "Sticky Note - Export",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        -80
+      ]
+    },
+    {
       "parameters": {},
-      "id": "t1",
-      "name": "Manual Trigger",
+      "id": "node-trigger",
+      "name": "1. Start Audit Run",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        220,
-        300
+        180,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "target_urls",
+              "value": "https://arkansasfence.com"
+            },
+            {
+              "name": "brand_name",
+              "value": "Reckon Automata"
+            }
+          ],
+          "number": [
+            {
+              "name": "max_pages_per_site",
+              "value": 3
+            },
+            {
+              "name": "min_priority_score",
+              "value": 40
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-config",
+      "name": "2. Configure URLs & Brand",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        400,
+        220
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.apify.com/v2/acts/krazyarcher~reckon-all-in-one-suite/run-sync-get-dataset-items?token={{$env.APIFY_TOKEN}}",
+        "url": "=https://api.apify.com/v2/acts/krazyarcher~reckon-all-in-one-suite/run-sync-get-dataset-items?token={{ $env.APIFY_TOKEN }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"urls\": [\"https://arkansasfence.com\", \"https://bestplumbersmichigan.com\"],\n  \"brandName\": \"Your Agency\",\n  \"businessType\": \"LocalBusiness\",\n  \"maxPagesPerSite\": 5,\n  \"onlyQualified\": true,\n  \"generateReports\": true,\n  \"generateGeoKit\": true\n}",
+        "jsonBody": "={{ JSON.stringify({ urls: $json.target_urls.split(',').map(u => u.trim()).filter(Boolean), brandName: $json.brand_name, maxPagesPerSite: $json.max_pages_per_site, onlyQualified: true, generateReports: true, generateGeoKit: true }) }}",
         "options": {
-          "timeout": 120000
+          "timeout": 180000
         }
       },
-      "id": "a1",
-      "name": "Run Reckon All-in-One Suite (Apify)",
+      "id": "node-apify",
+      "name": "3. Run Reckon Suite on Apify",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        480,
-        300
+        640,
+        220
       ]
     },
     {
       "parameters": {
-        "content": "## Reckon All-in-One Suite (Apify) \u2014 Quick Setup\n\n1. Get your Apify API token from https://console.apify.com/settings/integrations\n2. Add `APIFY_TOKEN` to your n8n environment variables (or replace `{{$env.APIFY_TOKEN}}` in the HTTP node URL).\n3. Put your prospect URLs or Google Maps leads in the JSON body and click **Execute Workflow**.\n\n**What you get:** Opportunity score (healthy sites auto-dropped), verified email/phone, clickable white-label PDF audit (`report_pdf_url`), and AI-Search `llms.txt` + JSON-LD fix kit (`geo_kit.llms_txt_url`).\n\nActor Page: https://apify.com/krazyarcher/reckon-all-in-one-suite",
-        "height": 300,
-        "width": 460
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.priority_score || 0 }}",
+              "operation": "largerEqual",
+              "value2": 40
+            }
+          ]
+        }
       },
-      "id": "note-setup",
-      "name": "Setup Guide",
-      "type": "n8n-nodes-base.stickyNote",
+      "id": "node-filter",
+      "name": "4. Filter High-Priority Leads",
+      "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        180,
-        -40
+        880,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "business_name",
+              "value": "={{ $json.business_name || $json.host }}"
+            },
+            {
+              "name": "website",
+              "value": "={{ $json.website || $json.url }}"
+            },
+            {
+              "name": "email",
+              "value": "={{ $json.email || '' }}"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $json.phone || '' }}"
+            },
+            {
+              "name": "leak_tier",
+              "value": "={{ $json.leak_tier || 'QUALIFIED' }}"
+            },
+            {
+              "name": "report_pdf_url",
+              "value": "={{ $json.report_pdf_url || '' }}"
+            },
+            {
+              "name": "llms_txt_url",
+              "value": "={{ $json.geo_kit ? $json.geo_kit.llms_txt_url : '' }}"
+            },
+            {
+              "name": "outreach_hook",
+              "value": "=Hi {{ $json.business_name || 'team' }}, we ran a quick technical & AI-search check on {{ $json.website || $json.url }} and compiled a free PDF breakdown here: {{ $json.report_pdf_url || '' }}"
+            }
+          ],
+          "number": [
+            {
+              "name": "priority_score",
+              "value": "={{ $json.priority_score || 0 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-format",
+      "name": "5. Format Outreach & PDF Links",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        160
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "node-skip",
+      "name": "Skip Healthy Websites",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "priority_score",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-sort",
+      "name": "6. Sort by Priority Score",
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "csv",
+        "options": {
+          "fileName": "reckon_qualified_leads.csv"
+        }
+      },
+      "id": "node-csv",
+      "name": "7. Export Outreach CSV",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1560,
+        160
       ]
     }
   ],
   "connections": {
-    "Manual Trigger": {
+    "1. Start Audit Run": {
       "main": [
         [
           {
-            "node": "Run Reckon All-in-One Suite (Apify)",
+            "node": "2. Configure URLs & Brand",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Configure URLs & Brand": {
+      "main": [
+        [
+          {
+            "node": "3. Run Reckon Suite on Apify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Run Reckon Suite on Apify": {
+      "main": [
+        [
+          {
+            "node": "4. Filter High-Priority Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Filter High-Priority Leads": {
+      "main": [
+        [
+          {
+            "node": "5. Format Outreach & PDF Links",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Healthy Websites",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. Format Outreach & PDF Links": {
+      "main": [
+        [
+          {
+            "node": "6. Sort by Priority Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6. Sort by Priority Score": {
+      "main": [
+        [
+          {
+            "node": "7. Export Outreach CSV",
             "type": "main",
             "index": 0
           }
@@ -61,7 +315,6 @@
       ]
     }
   },
-  "active": false,
   "settings": {
     "executionOrder": "v1"
   }
